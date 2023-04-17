@@ -6,22 +6,25 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/16 19:27:37 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/17 17:50:44 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include	<philo.h>
 
-void	*rutine(void *table)
+void	*routine(t_philo *philo)
 {
-	t_table	*cast_table;
-	
-	cast_table = (t_table *)table;
-	while (!cast_table->any_dead)
+	pthread_mutex_lock(&philo->table->init);
+	pthread_mutex_unlock(&philo->table->init);
+	if (!(philo->n % 2))
+		usleep(100);
+	while (!philo->table->any_dead)
 	{
-		printf("a");
+		pthread_mutex_lock(&philo->table->print);
+		printf("%i \n", philo->n);
+		pthread_mutex_unlock(&philo->table->print);
 	}
-	
+	return (NULL);
 }
 
 int	main(int ac, char ** av)
@@ -33,7 +36,6 @@ int	main(int ac, char ** av)
 
 	(void)	ac;
 	(void)	av;
-	// if (ac <)
 	if (ac != 2)
 		return (1);
 	n_philo = atoi(av[1]);
@@ -73,12 +75,23 @@ int	main(int ac, char ** av)
 		table.philos[i].alive = 1;
 		table.philos[i].r_fork = table.forks[i];
 		table.philos[i].l_fork = table.forks[(i + 1) % n_philo];
+		table.philos[i].table = &table;
 	}
-	err = pthread_create(&table.philos[i].id, NULL, rutine, &table);
-	if (err)
+	pthread_mutex_lock(&table.init);
+	i = -1;
+	while (++i < n_philo)
 	{
-		dprintf(2, "Error \'pthread_create()\'.\nThread %i", i);
-		return (1);
+		err = pthread_create(&table.philos[i].id, NULL, (void *)routine, &table.philos[i]);
+		if (err)
+		{
+			dprintf(2, "Error \'pthread_create()\'.\nThread %i", i);
+			return (1);
+		}
 	}
+	pthread_mutex_unlock(&table.init);
+	i = -1;
+	while (++i < n_philo)
+		if (pthread_join(table.philos[i].id, NULL))
+			return (1);
 	return (0);
 }
