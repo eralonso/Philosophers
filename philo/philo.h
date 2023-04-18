@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:45:10 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/17 19:41:05 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/18 19:32:51 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,10 @@
 # define IST	(char *)"is thinking"
 # define DEAD	(char *)"died"
 
+//Synonymous
+typedef pthread_mutex_t	t_mutex;
+
+//Struct
 typedef struct s_table	t_table;
 typedef struct s_philo	t_philo;
 typedef struct s_times	t_times;
@@ -38,25 +42,27 @@ struct s_times
 
 
 struct s_table {
-	pthread_mutex_t	print;
-	pthread_mutex_t	init;
-	pthread_mutex_t	*forks;
-	t_philo			*philos;
-	t_times			time;
-	int				any_dead;
-	int				tt_eat;
-	long long		time_start;
+	t_mutex		print;
+	t_mutex		init;
+	t_mutex		*forks;
+	t_philo		*philos;
+	t_times		time;
+	int			any_dead;
+	int			tt_eat;
+	int			n_philo;
+	long long	time_start;
 };
 
 struct s_philo
 {
-	pthread_t		id;
-	int				alive;
-	int				n;
-	int				times_eat;
-	pthread_mutex_t	r_fork;
-	pthread_mutex_t	l_fork;
-	t_table			*table;
+	pthread_t	id;
+	int			alive;
+	int			n;
+	int			times_eat;
+	t_mutex		r_fork;
+	t_mutex		l_fork;
+	long long	last_eat;
+	t_table		*table;
 };
 
 #endif
