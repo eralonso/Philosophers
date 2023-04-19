@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:45:10 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/18 19:32:51 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/19 12:40:42 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ struct s_times
 struct s_table {
 	t_mutex		print;
 	t_mutex		init;
+	t_mutex		life_check;
 	t_mutex		*forks;
 	t_philo		*philos;
 	t_times		time;
@@ -59,8 +60,8 @@ struct s_philo
 	int			alive;
 	int			n;
 	int			times_eat;
-	t_mutex		r_fork;
-	t_mutex		l_fork;
+	t_mutex		*r_fork;
+	t_mutex		*l_fork;
 	long long	last_eat;
 	t_table		*table;
 };
