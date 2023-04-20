@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:45:10 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/19 12:40:42 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/20 18:20:50 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ struct s_table {
 	int			tt_eat;
 	int			n_philo;
 	long long	time_start;
+	char		**av;
 };
 
 struct s_philo
