@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/20 19:51:35 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/21 18:05:05 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ long long int	get_time()
 	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
 }
 
-static int	init_table_philos(t_table *table, int n_philo, char **av)
+static int	init_table_philos(t_table *table, int n_philo, char **av, int ac)
 {
 	int		i;
 
@@ -29,6 +29,9 @@ static int	init_table_philos(t_table *table, int n_philo, char **av)
 	table->time.to_die = atoi(av[1]);
 	table->time.to_eat = atoi(av[2]);
 	table->time.to_sleep = atoi(av[3]);
+	table->tt_eat = -1;
+	if (ac == 5)
+		table->tt_eat = atoi(av[4]);		
 	table->philos = (t_philo *)malloc(sizeof(t_philo) * n_philo);
 	if (!table->philos)
 		return (0);
@@ -72,7 +75,6 @@ static int	init_table_philos(t_table *table, int n_philo, char **av)
 		table->philos[i].l_fork = &table->forks[((i + 1) % n_philo)];
 		table->philos[i].table = table;
 		table->philos[i].times_eat = 0;
-		// table->philos[i].last_eat = get_time();
 	}
 	return (1);
 }
@@ -101,8 +103,6 @@ void	do_sleep(long long time)
 
 void	*set_dead(t_philo *philo, t_table *table)
 {
-	// if (table->any_dead)
-	// 	return (NULL);
 	table->any_dead = 1;
 	pthread_mutex_lock(&table->print);
 	printf("%lld %i %s\n", get_time() - table->time_start, philo->n, DEAD);
@@ -114,22 +114,20 @@ void	*routine(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->table->init);
 	pthread_mutex_unlock(&philo->table->init);
-	// philo->last_eat = get_time();
 	if ((philo->n % 2))
 		do_sleep(1);
+	philo->last_eat = philo->table->time_start;
 	while (!philo->table->any_dead)
 	{
+		if (philo->table->tt_eat != -1 && philo->times_eat == philo->table->tt_eat)
+			break ;
+		print_state(philo, IST);
 		pthread_mutex_lock(philo->r_fork);
 		print_state(philo, HTK);
+		if (philo->r_fork == philo->l_fork)
+			break ;
 		pthread_mutex_lock(philo->l_fork);
 		print_state(philo, HTK);
-		// if (get_time() - philo->last_eat >= philo->table->time.to_die)
-		// {
-		// 	set_dead(philo, philo->table);
-		// 	pthread_mutex_unlock(philo->r_fork);
-		// 	pthread_mutex_unlock(philo->l_fork);
-		// 	break ;
-		// }
 		pthread_mutex_lock(&philo->table->life_check);
 		print_state(philo, ISE);
 		philo->last_eat = get_time();
@@ -138,9 +136,10 @@ void	*routine(t_philo *philo)
 		pthread_mutex_unlock(philo->r_fork);
 		pthread_mutex_unlock(philo->l_fork);
 		philo->times_eat++;
+		if (philo->table->tt_eat != -1 && philo->times_eat == philo->table->tt_eat)
+			break ;
 		print_state(philo, ISS);
 		do_sleep(philo->table->time.to_sleep);
-		print_state(philo, IST);
 	}
 	return (NULL);
 }
@@ -151,15 +150,16 @@ int	main(int ac, char ** av)
 	int		err;
 	int		n_philo;
 	int		i;
+	int		t_eats;
 
 	(void)	ac;
 	(void)	av;
-	if (ac != 5)
+	if (ac < 5 || ac > 6)
 		return (1);
 	n_philo = atoi(av[1]);
 	if (!n_philo)
 		return (1);
-	if (!init_table_philos(&table, n_philo, &av[1]))
+	if (!init_table_philos(&table, n_philo, &av[1], ac - 1))
 		return (1);
 	pthread_mutex_lock(&table.init);
 	i = -1;
@@ -176,19 +176,21 @@ int	main(int ac, char ** av)
 	table.time_start = get_time();
 	pthread_mutex_unlock(&table.init);
 	i = 0;
+	t_eats = 0;
 	while (!table.any_dead)
 	{
 		pthread_mutex_lock(&table.life_check);
 		if (get_time() - table.philos[i].last_eat >= table.time.to_die)
-		{
 			set_dead(&table.philos[i], &table);
-			// break ;
-		}
 		pthread_mutex_unlock(&table.life_check);
+		if (table.tt_eat != -1 && t_eats == table.tt_eat)
+			break ;
 		do_sleep(50);
-		i++;
-		if (i == n_philo)
+		if (++i == n_philo)
+		{
+			t_eats++;
 			i = 0;
+		}
 	}
 	i = -1;
 	while (++i < n_philo)
