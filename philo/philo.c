@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/21 18:05:05 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/22 16:49:11 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,18 +84,13 @@ void	print_state(t_philo *philo, char *state)
 	if (philo->table->any_dead)
 		return ;
 	pthread_mutex_lock(&philo->table->print);
-	if (philo->table->any_dead)
-	{
-		pthread_mutex_unlock(&philo->table->print);
-		return ;
-	}
-	printf("%lld %i %s\n", get_time() - philo->table->time_start, philo->n, state);
+	if (!philo->table->any_dead)
+		printf("%lld %i %s\n", get_time() - philo->table->time_start, philo->n, state);
 	pthread_mutex_unlock(&philo->table->print);
 }
 
 void	do_sleep(long long time)
 {
-
 	time += get_time();
 	while (get_time() < time)
 		usleep(200);
@@ -115,8 +110,10 @@ void	*routine(t_philo *philo)
 	pthread_mutex_lock(&philo->table->init);
 	pthread_mutex_unlock(&philo->table->init);
 	if ((philo->n % 2))
-		do_sleep(1);
+		do_sleep(2);
+	pthread_mutex_lock(&philo->table->life_check);
 	philo->last_eat = philo->table->time_start;
+	pthread_mutex_unlock(&philo->table->life_check);
 	while (!philo->table->any_dead)
 	{
 		if (philo->table->tt_eat != -1 && philo->times_eat == philo->table->tt_eat)
@@ -183,14 +180,12 @@ int	main(int ac, char ** av)
 		if (get_time() - table.philos[i].last_eat >= table.time.to_die)
 			set_dead(&table.philos[i], &table);
 		pthread_mutex_unlock(&table.life_check);
-		if (table.tt_eat != -1 && t_eats == table.tt_eat)
-			break ;
-		do_sleep(50);
-		if (++i == n_philo)
-		{
+		if (table.philos[i].times_eat > t_eats)
 			t_eats++;
+		if (t_eats == table.tt_eat)
+			break ;
+		if (++i == n_philo)
 			i = 0;
-		}
 	}
 	i = -1;
 	while (++i < n_philo)

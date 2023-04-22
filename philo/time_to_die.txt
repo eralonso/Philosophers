@@ -1,0 +1,14 @@
+adder = 1;
+multiplier = 1;
+
+if (!(n_philo % 2))
+{
+	if (t_to_sleep > t_to_eat)
+		adder += t_to_sleep;
+	else
+		multplier = 2;
+}
+else
+	multplier = 3;
+
+t_to_die = (t_to_eat * multiplier) + adder;

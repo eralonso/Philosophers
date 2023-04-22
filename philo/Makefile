@@ -6,7 +6,7 @@
 #    By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/14 13:02:49 by eralonso          #+#    #+#              #
-#    Updated: 2023/04/14 13:10:41 by eralonso         ###   ########.fr        #
+#    Updated: 2023/04/22 15:27:27 by eralonso         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -58,7 +58,7 @@ all				:
 	@$(MAKE) $(NAME)
 
 $(NAME)			:	$(OBJS)
-	@$(CC) $(CFLAGS) $(OBJS) -o $@
+	@$(CC) $(CFLAGS) -lm $(OBJS) -o $@
 	@echo "\n$(GREEN)philo has been compiled$(DEF_COLOR)"
 
 clean			:
