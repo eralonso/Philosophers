@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/22 16:49:11 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/25 13:45:19 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,11 +109,8 @@ void	*routine(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->table->init);
 	pthread_mutex_unlock(&philo->table->init);
-	if ((philo->n % 2))
+	if (!(philo->n % 2))
 		do_sleep(2);
-	pthread_mutex_lock(&philo->table->life_check);
-	philo->last_eat = philo->table->time_start;
-	pthread_mutex_unlock(&philo->table->life_check);
 	while (!philo->table->any_dead)
 	{
 		if (philo->table->tt_eat != -1 && philo->times_eat == philo->table->tt_eat)
@@ -125,10 +122,8 @@ void	*routine(t_philo *philo)
 			break ;
 		pthread_mutex_lock(philo->l_fork);
 		print_state(philo, HTK);
-		pthread_mutex_lock(&philo->table->life_check);
 		print_state(philo, ISE);
 		philo->last_eat = get_time();
-		pthread_mutex_unlock(&philo->table->life_check);
 		do_sleep(philo->table->time.to_eat);
 		pthread_mutex_unlock(philo->r_fork);
 		pthread_mutex_unlock(philo->l_fork);
@@ -160,6 +155,7 @@ int	main(int ac, char ** av)
 		return (1);
 	pthread_mutex_lock(&table.init);
 	i = -1;
+	table.time_start = get_time();
 	while (++i < n_philo)
 	{
 		table.philos[i].last_eat = get_time();
@@ -170,26 +166,25 @@ int	main(int ac, char ** av)
 			return (1);
 		}
 	}
-	table.time_start = get_time();
 	pthread_mutex_unlock(&table.init);
+	i = -1;
+	while (++i < table.n_philo)
+		table.philos[i].last_eat = table.time_start;
 	i = 0;
 	t_eats = 0;
 	while (!table.any_dead)
 	{
-		pthread_mutex_lock(&table.life_check);
 		if (get_time() - table.philos[i].last_eat >= table.time.to_die)
 			set_dead(&table.philos[i], &table);
-		pthread_mutex_unlock(&table.life_check);
-		if (table.philos[i].times_eat > t_eats)
+		if (table.philos[i].times_eat == table.tt_eat)
 			t_eats++;
-		if (t_eats == table.tt_eat)
+		if (t_eats == table.n_philo)
 			break ;
 		if (++i == n_philo)
+		{
 			i = 0;
+			t_eats = 0;
+		}
 	}
-	i = -1;
-	while (++i < n_philo)
-		if (pthread_join(table.philos[i].id, NULL))
-			return (1);
 	return (0);
 }
