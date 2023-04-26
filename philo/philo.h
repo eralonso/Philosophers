@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:45:10 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/22 16:38:24 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/26 15:59:23 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ struct s_times
 	int	to_eat;
 	int	to_sleep;
 };
-
 
 struct s_table {
 	t_mutex		print;

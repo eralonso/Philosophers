@@ -6,13 +6,13 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/26 12:44:51 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/26 19:58:38 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include	<philo.h>
 
-long long int	get_time()
+long long int	get_time(void)
 {
 	struct timeval	tv;
 
@@ -31,7 +31,7 @@ static int	init_table_philos(t_table *table, int n_philo, char **av, int ac)
 	table->time.to_sleep = atoi(av[3]);
 	table->tt_eat = -1;
 	if (ac == 5)
-		table->tt_eat = atoi(av[4]);		
+		table->tt_eat = atoi(av[4]);
 	table->philos = (t_philo *)malloc(sizeof(t_philo) * n_philo);
 	if (!table->philos)
 		return (0);
@@ -85,7 +85,8 @@ void	print_state(t_philo *philo, char *state)
 		return ;
 	pthread_mutex_lock(&philo->table->print);
 	if (!philo->table->any_dead)
-		printf("%lld %i %s\n", get_time() - philo->table->time_start, philo->n, state);
+		printf("%lld %i %s\n", get_time() - \
+				philo->table->time_start, philo->n, state);
 	pthread_mutex_unlock(&philo->table->print);
 }
 
@@ -113,7 +114,8 @@ void	*routine(t_philo *philo)
 		do_sleep(2);
 	while (!philo->table->any_dead)
 	{
-		if (philo->table->tt_eat != -1 && philo->times_eat == philo->table->tt_eat)
+		if (philo->table->tt_eat != -1 && \
+			philo->times_eat == philo->table->tt_eat)
 			break ;
 		print_state(philo, IST);
 		pthread_mutex_lock(philo->r_fork);
@@ -128,7 +130,8 @@ void	*routine(t_philo *philo)
 		pthread_mutex_unlock(philo->r_fork);
 		pthread_mutex_unlock(philo->l_fork);
 		philo->times_eat++;
-		if (philo->table->tt_eat != -1 && philo->times_eat == philo->table->tt_eat)
+		if (philo->table->tt_eat != -1 && \
+			philo->times_eat == philo->table->tt_eat)
 			break ;
 		print_state(philo, ISS);
 		do_sleep(philo->table->time.to_sleep);
