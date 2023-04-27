@@ -16,43 +16,65 @@ $mkfs > /dev/null
 function dead_time_analyzer()
 {
 	echo ""
-	PHILO=$(echo -e "$OUT" | awk '
-	BEGIN {philo=0}
-	{if ($3 == "died")
-		{philo=$2}
-	if ($1 < 0)
-		{philo=-1}}
-	END {print philo}
-	')
-	if [ $PHILO == -1 ]; then
-		echo -e "Fatal error with the time of dead:\n\t\033[1;93mIS NEGATIVE WTF 😵!!!\033[0;m"
+	PHILOS_DIED=$(echo -e "$OUT" | grep "died" | wc -l)
+	if [ $PHILOS_DIED -gt 1 ]; then
+		echo "\033[1;93mKO: More than 1 philo died -> ($PHILOS_DIED)\033[0m"
 		return ;
 	fi
-	if [ $PHILO != 0 ]; then
-		echo -e "$OUT" | awk -v DIE="$T_DIE" -v P="$PHILO" '
-		BEGIN {lt_eat=-1; t_died=-1}
-		{
-			if ($2 == P && $4 == "eating")
-			{
-				lt_eat=$1
-			}
-			else if ($2 == P && $3 == "died")
-			{
-				t_died=$1
-			}
-		}
-		END {
-			if (lt_eat != -1 && t_died != -1 && (t_died - lt_eat) - 10 >= DIE)
-			{
-				print "Bad dead time with philo " P ": Die after could be die"
-			}
-			else
-			{
-				print "Dead time is OK"
-			}
-		}
-		'
+	WEIRD_TIME=$(echo -e "$OUT" | awk 'BEGIN {weird=0} $1 < 0 {weird=-1} END {print weird}')
+	if [ $WEIRD_TIME == -1 ]; then
+		echo -e "\033[1;93mKO\033[0m: Fatal error with the time:\n\t\033[1;93mIS NEGATIVE WTF 😵!!!\033[0;m"
+		return ;
 	fi
+	PHILO=$(echo -e "$OUT" | grep "died" | awk '{print $2}')
+	TIMES_EAT=$(echo -e "$OUT" | grep " $PHILO is eating" | tail -2 | wc -l
+	if [ $TIMES_EAT -lt 2 ]; then
+		PN_EAT=$()
+	else
+		PN_EAT=$(echo -e "$OUT" | grep " $PHILO is eating" | tail -2 | head -1 | awk '{print $1}')
+	fi
+	LT_EAT=$(echo -e "$OUT" | grep " $PHILO is eating" | tail -1 | awk '{print $1}')
+	if [[ $((LT_EAT - $PN_EAT)) > $((T_DIE + 10)) ]]; then
+		echo -e "\033[1;93mKO\033[0m: Bad dead time with philo $PHILO: Die after could be die -> Penultimate eat: $PN_EAT; Ultimate eat: $PN_EAT: Time could be die: $((PN_EAT + $T_DIE))"
+	else
+		echo $((LT_EAT - $PN_EAT))
+		echo $((T_DIE + 10))
+		echo -e "\033[1;94mOK\033[0m"
+	fi
+	# echo -e "$OUT" | grep "died" | awk -v DIE="$T_DIE" -v P="$PHILO" ''
+	# PHILO=$(echo -e "$OUT" | awk '
+	# BEGIN {philo=0}
+	# {if ($3 == "died")
+	# 	{philo=$2}
+	# if ($1 < 0)
+	# 	{philo=-1}}
+	# END {print philo}
+	# ')
+	# if [ $PHILO != 0 ]; then
+	# 	echo -e "$OUT" | awk -v DIE="$T_DIE" -v P="$PHILO" '
+	# 	BEGIN {lt_eat=-1; t_died=-1}
+	# 	{
+	# 		if ($2 == P && $4 == "eating")
+	# 		{
+	# 			lt_eat=$1
+	# 		}
+	# 		else if ($2 == P && $3 == "died")
+	# 		{
+	# 			t_died=$1
+	# 		}
+	# 	}
+	# 	END {
+	# 		if (lt_eat != -1 && t_died != -1 && (t_died - lt_eat) - 10 >= DIE)
+	# 		{
+	# 			print "Bad dead time with philo " P ": Die after could be die"
+	# 		}
+	# 		else
+	# 		{
+	# 			print "Dead time is OK"
+	# 		}
+	# 	}
+	# 	'
+	# fi
 	return ;
 }
 
