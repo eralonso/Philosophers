@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/27 12:45:20 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/27 19:21:42 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@ void	do_sleep(long long time)
 {
 	time += get_time();
 	while (get_time() < time)
-		usleep(200);
+		usleep(250);
 }
 
 void	*set_dead(t_philo *philo, t_table *table)
@@ -124,8 +124,8 @@ void	*routine(t_philo *philo)
 			break ;
 		pthread_mutex_lock(philo->l_fork);
 		print_state(philo, HTK);
-		print_state(philo, ISE);
 		philo->last_eat = get_time();
+		print_state(philo, ISE);
 		do_sleep(philo->table->time.to_eat);
 		pthread_mutex_unlock(philo->r_fork);
 		pthread_mutex_unlock(philo->l_fork);
@@ -181,7 +181,7 @@ int	main(int ac, char ** av)
 			// break ;
 		if (get_time() - table.philos[i].last_eat >= table.time.to_die)
 		{
-			do_sleep(50);	
+			do_sleep(11);
 			set_dead(&table.philos[i], &table);
 		}
 		if (table.philos[i].times_eat == table.tt_eat)
