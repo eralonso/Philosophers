@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/28 14:26:22 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/28 19:30:27 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,11 +47,19 @@ static int	init_table_philos(t_table *table, int n_philo, char **av, int ac)
 		free(table->forks);
 		return (0);
 	}
+	if (pthread_mutex_init(&table->init, NULL))
+	{
+		free(table->philos);
+		free(table->forks);
+		pthread_mutex_destroy(&table->print);
+		return (0);
+	}
 	if (pthread_mutex_init(&table->life_check, NULL))
 	{
 		free(table->philos);
 		free(table->forks);
 		pthread_mutex_destroy(&table->print);
+		pthread_mutex_destroy(&table->init);
 		return (0);
 	}
 	i = -1;
@@ -93,8 +101,8 @@ void	print_state(t_philo *philo, char *state)
 void	do_sleep(long long time)
 {
 	time += get_time();
-	while (get_time() < time)
-		usleep(250);
+	while (get_time() <= time)
+		usleep(100);
 }
 
 void	*set_dead(t_philo *philo, t_table *table)
@@ -111,25 +119,28 @@ void	*routine(t_philo *philo)
 	pthread_mutex_lock(&philo->table->init);
 	pthread_mutex_unlock(&philo->table->init);
 	if (!(philo->n % 2))
-		do_sleep(2);
-	while (!philo->table->any_dead)
+		do_sleep(philo->table->time.to_eat);
+	while (!philo->table->any_dead && !(philo->table->tt_eat != -1 \
+		&& philo->times_eat == philo->table->tt_eat))
 	{
-		if (philo->table->tt_eat != -1 && \
-			philo->times_eat == philo->table->tt_eat)
-			break ;
 		print_state(philo, IST);
 		pthread_mutex_lock(philo->r_fork);
 		print_state(philo, HTK);
 		if (philo->r_fork == philo->l_fork)
+		{
+			pthread_mutex_unlock(philo->r_fork);
 			break ;
+		}
 		pthread_mutex_lock(philo->l_fork);
+		// pthread_mutex_lock(&philo->table->life_check);
 		print_state(philo, HTK);
-		philo->last_eat = get_time();
 		print_state(philo, ISE);
+		philo->times_eat++;
+		philo->last_eat = get_time();
+		// pthread_mutex_unlock(&philo->table->life_check);
 		do_sleep(philo->table->time.to_eat);
 		pthread_mutex_unlock(philo->r_fork);
 		pthread_mutex_unlock(philo->l_fork);
-		philo->times_eat++;
 		if (philo->table->tt_eat != -1 && \
 			philo->times_eat == philo->table->tt_eat)
 			break ;
@@ -169,31 +180,43 @@ int	main(int ac, char ** av)
 			return (1);
 		}
 	}
+	// do_sleep(n_philo * 2);
 	pthread_mutex_unlock(&table.init);
 	i = -1;
 	while (++i < table.n_philo)
 		table.philos[i].last_eat = table.time_start;
-	i = 0;
-	t_eats = 0;
+	// i = 0;
+	// t_eats = 0;
+	// do_sleep(2);
 	while (!table.any_dead)
 	{
 		// if (!table.tt_eat)
 			// break ;
+		// pthread_mutex_lock(&table.life_check);
+		// pthread_mutex_unlock(&table.life_check);
+		if (i == n_philo)
+		{
+			i = 0;
+			t_eats = 0;
+		}
+		if (table.philos[i].times_eat == table.tt_eat)
+			t_eats++;
+		if (t_eats == table.n_philo || !table.tt_eat)
+			break ;
 		if (get_time() - table.philos[i].last_eat >= table.time.to_die)
 		{
 			// do_sleep(11);
 			set_dead(&table.philos[i], &table);
 		}
-		if (table.philos[i].times_eat == table.tt_eat)
-			t_eats++;
-		if (t_eats == table.n_philo)
-			break ;
-		if (++i == n_philo)
-		{
-			i = 0;
-			t_eats = 0;
-		}
+		i++;
+		// usleep(5000);
 	}
+	i = -1;
+	while (++i < table.n_philo)
+		pthread_mutex_destroy(&table.forks[i]);
+	pthread_mutex_destroy(&table.print);
+	pthread_mutex_destroy(&table.init);
+	pthread_mutex_destroy(&table.life_check);		
 	i = -1;
 	while (++i < table.n_philo)
 		pthread_join(table.philos[i].id, NULL);
