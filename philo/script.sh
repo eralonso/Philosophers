@@ -19,15 +19,26 @@ function 	all_philos_time_analyzer(){
 	while [ $j -le $N_PHILO ]; do
 		k=2
 		ITERATIONS=$(echo -e "$OUT" | grep "$j is eating" | wc -l)
-		while [ $k -le $ITERATIONS ]; do
-			F_EAT=$(echo -e "$OUT" | grep "$j is eating" | head -$k | tail -2 | head -1 | awk '{print $1}')
-			S_EAT=$(echo -e "$OUT" | grep "$j is eating" | head -$k | tail -1 | awk '{print $1}')
-			if [[ $((S_EAT - $F_EAT)) -ge $((T_DIE)) ]]; then
-				echo -e "\t\033[1;91mKO\033[1;37m: Bad dead time with philo \033[1;94m$j\033[1;37m: Die after could be die -> Penultimate eat: $F_EAT; Ultimate eat: $S_EAT: Time could be die: $((F_EAT + $T_DIE))"
+		if [ $ITERATIONS -eq 1 ]; then
+		# if [[ $ITERATIONS -eq 1 && $(echo -e "$OUT" | grep "$j died" | awk '{print $2}') -eq $PHILO ]]; then
+			F_EAT=$(echo -e "$OUT" | grep "$j is eating" | awk '{print $1}')
+			# DEAD_TIME=$(echo -e "$OUT" | grep "$j died" | awk '{print $1}')
+			# if [[ $((DEAD_TIME - $F_EAT)) -gt $((T_DIE + 10)) ]]; then
+			if [[ $F_EAT -ge $T_DIE && $DEAD_TIME -gt $(((F_EAT - $INIT_EAT_TIME) + 10)) ]]; then
+				echo -e "\t\033[1;91mKO\033[1;37m: Bad dead time with philo \033[1;94m$j\033[1;37m: Die after could be die -> Ultimate eat: $F_EAT; Time died: $DEAD_TIME: Time could be die: $((F_EAT + $T_DIE))"
 				OK=0
 			fi
-			((k++))
-		done
+		else
+			while [ $k -le $ITERATIONS ]; do
+				F_EAT=$(echo -e "$OUT" | grep "$j is eating" | head -$k | tail -2 | head -1 | awk '{print $1}')
+				S_EAT=$(echo -e "$OUT" | grep "$j is eating" | head -$k | tail -1 | awk '{print $1}')
+				if [[ $((S_EAT - $F_EAT)) -ge $T_DIE && $DEAD_TIME -gt $((S_EAT + 10)) ]]; then
+					echo -e "\t\033[1;91mKO\033[1;37m: Bad dead time with philo \033[1;94m$j\033[1;37m: Die after could be die -> Penultimate eat: $F_EAT; Ultimate eat: $S_EAT: Time could be die: $((F_EAT + $T_DIE))"
+					OK=0
+				fi
+				((k++))
+			done
+		fi
 		((j++))
 	done
 	if [[ $OK == 1 ]]; then
@@ -56,6 +67,8 @@ function dead_time_analyzer()
 		echo -e "\t\033[1;91mKO\033[1;37m: Fatal error with the time:\n\t\033[1;93mIS NEGATIVE WTF 😵!!!\033[0m"
 		return ;
 	fi
+	INIT_TIME=$(echo -e "$OUT" | head -1 | awk '{print $1}')
+	INIT_EAT_TIME=$(echo -e "$OUT" | grep "eating" | head -1 | awk '{print $1}')
 	PHILO=$(echo -e "$OUT" | grep "died" | awk '{print $2}')
 	TIMES_EAT=$(echo -e "$OUT" | grep " $PHILO is eating" | tail -2 | wc -l)
 	DEAD_TIME=$(echo -e "$OUT" | grep " $PHILO died" | awk '{print $1}')
@@ -76,10 +89,10 @@ function dead_time_analyzer()
 			echo -e "\t\033[1;92mOK\033[0m"
 		fi
 	else
-		if [[ $((DEAD_TIME - $LT_EAT)) -gt $((T_DIE + 10)) ]]; then
+		if [[ $((DEAD_TIME - $LT_EAT)) -gt $((T_DIE + 10 + $INIT_TIME)) ]]; then
 			echo -e "\t\033[1;91mKO\033[1;37m: Bad dead time with philo \033[1;94m$PHILO\033[1;37m: Die after could be die -> Ultimate eat: $LT_EAT: Time could be die: $((LT_EAT + $T_DIE))"
 		elif [[ $DEAD_TIME -gt $((T_DIE + 10)) ]]; then
-			echo -e "\t\033[1;91mKO\033[1;37m: Bad dead time with philo \033[1;94m$PHILO\033[1;37m: Die after could be die -> Time could be die: $T_DIE))"
+			echo -e "\t\033[1;91mKO\033[1;37m: Bad dead time with philo \033[1;94m$PHILO\033[1;37m: Die after could be die -> Time could be die: $T_DIE"
 		else
 			echo -e "\t\033[1;92mOK\033[0m"
 		fi

@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/27 19:21:42 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/28 14:26:22 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,7 +181,7 @@ int	main(int ac, char ** av)
 			// break ;
 		if (get_time() - table.philos[i].last_eat >= table.time.to_die)
 		{
-			do_sleep(11);
+			// do_sleep(11);
 			set_dead(&table.philos[i], &table);
 		}
 		if (table.philos[i].times_eat == table.tt_eat)
