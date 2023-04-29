@@ -11,7 +11,12 @@ fi
 
 mkfs="make --warn-undefined-variables --no-print-directory"
 
-$mkfs >> /dev/null
+$mkfs &> /dev/null
+
+if [ $? -ne 0 ]; then
+	echo "Error trying to execute makefile"
+	exit 1
+fi
 
 function 	all_philos_time_analyzer(){
 	OK=1
