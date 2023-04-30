@@ -6,21 +6,29 @@ argv=($@)
 if [[ ${argv[0]} == "-h" || ${argv[0]} == "--help" ]]; then
 	echo -e "\033[1;92mUsage: \033[1;94m./script.sh <options: [--help/-h...]> N_LOOPS T_DELAY N_PHILO TIME_TO_DIE TIME_TO_EAT TIME_TO_SLEEP <N_TIMES_EAT>\n\033[0m"
 	echo -e "\033[1;93mOptions:"
+	echo -e "-cd0: No Check Death"
 	echo -e "-cd1: Check Death - level 1"
 	echo -e "-cd2: Check Death - level 2"
 	echo -e "-cda: Check Death - all levels"
 	exit 1;
 fi
 
-level=0
+level=-0
 
-if [ ${argv[0]} == "-cd1" ]; then
+if [ ${argv[0]} == "-cd0" ]; then
+	level=-1
+elif [ ${argv[0]} == "-cd1" ]; then
 	level=1
 elif [ ${argv[0]} == "-cd2" ]; then
 	level=2
+elif [ ${argv[0]} == "-cda" ]; then
+	level=3
+elif [ ${argv[0]:0:3} == "-cd" ]; then
+	echo -e "\033[1;91mIncorrect Check Death level\n\n\033[1;93mFor info use ./script.sh [-h/--help]\033[0m"
+	exit 1
 fi
 
-if [[ ${argv[0]} == "-cd1" || ${argv[0]} == "-cd2" || ${argv[0]} == "-cda" ]]; then
+if [[ ${argv[0]} == "-cd0" || ${argv[0]} == "-cd1" || ${argv[0]} == "-cd2" || ${argv[0]} == "-cda" ]]; then
 	((argc--))
 	unset argv[0]
 	argv=(${argv[@]})
@@ -51,10 +59,7 @@ function 	all_philos_time_analyzer(){
 		k=2
 		ITERATIONS=$(echo -e "$OUT" | grep "$j is eating" | wc -l)
 		if [ $ITERATIONS -eq 1 ]; then
-		# if [[ $ITERATIONS -eq 1 && $(echo -e "$OUT" | grep "$j died" | awk '{print $2}') -eq $PHILO ]]; then
 			F_EAT=$(echo -e "$OUT" | grep "$j is eating" | awk '{print $1}')
-			# DEAD_TIME=$(echo -e "$OUT" | grep "$j died" | awk '{print $1}')
-			# if [[ $((DEAD_TIME - $F_EAT)) -gt $((T_DIE + 10)) ]]; then
 			if [[ $F_EAT -ge $T_DIE && $DEAD_TIME -gt $(((F_EAT - $INIT_EAT_TIME) + 10)) ]]; then
 				echo -e "\t\033[1;91mKO\033[1;37m: Bad dead time with philo \033[1;94m$j\033[1;37m: Die after could be die -> Ultimate eat: $F_EAT; Time died: $DEAD_TIME: Time could be die: $((F_EAT + $T_DIE))"
 				OK=0
@@ -81,7 +86,7 @@ function 	all_philos_time_analyzer(){
 
 function dead_time_analyzer()
 {
-	if [[ $level -eq 0 || $level -eq 1 ]]; then
+	if [[ $level -eq 0 || $level -eq 1 || $level -eq 3 ]]; then
 		echo -e "\n\033[1mTest 1 - \033[1;93mCheck the two last meals (of the philo dead) and the dead time:\033[0m"
 		PHILOS_DIED=$(echo -e "$OUT" | grep "died" | wc -l)
 		if [ $PHILOS_DIED -gt 1 ]; then
@@ -129,52 +134,10 @@ function dead_time_analyzer()
 			fi
 		fi
 	fi
-	if [[ $level -eq 0 || $level -eq 2 ]]; then
+	if [[ $level -eq 0 || $level -gt 1 ]]; then
 		echo -e "\n\033[1mTest 2 - \033[1;93mCheck all meals of all philos - (Maybe the result is equal or similarity):\033[0m"
 		all_philos_time_analyzer
 	fi
-
-	# if [[ $((LT_EAT - $PN_EAT)) > $((T_DIE + 10)) ]]; then
-	# 	echo -e "\033[1;91mKO\033[1;37m: Bad dead time with philo \033[1;94m$PHILO\033[1;37m: Die after could be die -> Penultimate eat: $PN_EAT; Ultimate eat: $PN_EAT: Time could be die: $((PN_EAT + $T_DIE))"
-	# else
-	# 	echo $((LT_EAT - $PN_EAT))
-	# 	echo $((T_DIE + 10))
-	# 	echo -e "\033[1;92mOK\033[0m"
-	# fi
-	# echo -e "$OUT" | grep "died" | awk -v DIE="$T_DIE" -v P="$PHILO" ''
-	# PHILO=$(echo -e "$OUT" | awk '
-	# BEGIN {philo=0}
-	# {if ($3 == "died")
-	# 	{philo=$2}
-	# if ($1 < 0)
-	# 	{philo=-1}}
-	# END {print philo}
-	# ')
-	# if [ $PHILO != 0 ]; then
-	# 	echo -e "$OUT" | awk -v DIE="$T_DIE" -v P="$PHILO" '
-	# 	BEGIN {lt_eat=-1; t_died=-1}
-	# 	{
-	# 		if ($2 == P && $4 == "eating")
-	# 		{
-	# 			lt_eat=$1
-	# 		}
-	# 		else if ($2 == P && $3 == "died")
-	# 		{
-	# 			t_died=$1
-	# 		}
-	# 	}
-	# 	END {
-	# 		if (lt_eat != -1 && t_died != -1 && (t_died - lt_eat) - 10 >= DIE)
-	# 		{
-	# 			print "Bad dead time with philo " P ": Die after could be die"
-	# 		}
-	# 		else
-	# 		{
-	# 			print "Dead time is OK"
-	# 		}
-	# 	}
-	# 	'
-	# fi
 	return ;
 }
 
@@ -192,7 +155,7 @@ else
 fi
 i=0
 
-while [[ $i < $LOOPS ]]; do
+while [ $i -lt $LOOPS ]; do
 	echo -e "\n\t\033[1;94mLOOP $((i + 1))\033[1;37m\n"
 	OUT=$(./philo $N_PHILO $T_DIE $T_EAT $T_SLP $TT_EAT)
 	echo -e "$OUT"
@@ -202,14 +165,18 @@ while [[ $i < $LOOPS ]]; do
 	')
 	if [ $ANY_DEAD == 1 ]; then
 		echo -e "\n"
-		read -p "Dead Time Analysis [ Y / N ]:
+		if [ $level -eq 0 ]; then
+			read -p "Dead Time Analysis [ Y / N ]:
 " ANALYSIS
-		while [[ $ANALYSIS != "Y" && $ANALYSIS != "N" && $ANALYSIS != "y" && $ANALYSIS != "n" ]]; do
-		read -p "
+			while [[ $ANALYSIS != "Y" && $ANALYSIS != "N" && $ANALYSIS != "y" && $ANALYSIS != "n" ]]; do
+			read -p "
 Invalid param. Write a valid param [ Y / N ]:
 " ANALYSIS
-		done
-		if [[ $ANALYSIS == "Y" || $ANALYSIS == "y" ]]; then
+			done
+			if [[ $ANALYSIS == "Y" || $ANALYSIS == "y" ]]; then
+				dead_time_analyzer
+			fi
+		else
 			dead_time_analyzer
 		fi
 	fi
@@ -220,34 +187,3 @@ Invalid param. Write a valid param [ Y / N ]:
 done
 
 echo ""
-
-#other Script
-# while [ $i -lt $MAX ]; do
-	
-	# ARG=$(./philo $N_PHILO $T_DIE $T_EAT $T_SLP $TT_EAT)
-	# echo $ARG
-	# len=${#ARG}
-	# j=0
-	# k=1
-	
-	# while [ $((j+2)) -lt $len ]; do
-	
-	# 	N1=${ARG:$j:$k}
-	# 	N2=${ARG:$j+2:$k+2}
-	# 	# echo "$N1"
-	# 	# echo "$N2"
-	# 	echo "$j"
-	# 	echo "$k"
-
-	# 	if [ $N1 -gt $N2 ]; then
-	# 		echo "mal"
-	# 	fi
-
-	# 	((j += 2))
-	# 	((k += 2))
-
-	# done
-	
-# 	((i++))
-
-# done

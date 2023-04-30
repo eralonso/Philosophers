@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:45:10 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/26 15:59:23 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/30 19:38:21 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,5 +65,11 @@ struct s_philo
 	long long	last_eat;
 	t_table		*table;
 };
+
+void			print_state(t_philo *philo, char *state);
+void			do_sleep(long long time);
+void			*set_dead(t_philo *philo, t_table *table);
+long long int	get_time(void);
+int				ft_atoi(char *str);
 
 #endif

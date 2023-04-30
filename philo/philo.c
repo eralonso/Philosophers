@@ -6,19 +6,12 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/28 19:30:27 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/04/30 19:37:58 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include	<philo.h>
 
-long long int	get_time(void)
-{
-	struct timeval	tv;
-
-	gettimeofday(&tv, NULL);
-	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
-}
 
 static int	init_table_philos(t_table *table, int n_philo, char **av, int ac)
 {
@@ -26,12 +19,12 @@ static int	init_table_philos(t_table *table, int n_philo, char **av, int ac)
 
 	table->any_dead = 0;
 	table->n_philo = n_philo;
-	table->time.to_die = atoi(av[1]);
-	table->time.to_eat = atoi(av[2]);
-	table->time.to_sleep = atoi(av[3]);
+	table->time.to_die = ft_atoi(av[1]);
+	table->time.to_eat = ft_atoi(av[2]);
+	table->time.to_sleep = ft_atoi(av[3]);
 	table->tt_eat = -1;
 	if (ac == 5)
-		table->tt_eat = atoi(av[4]);
+		table->tt_eat = ft_atoi(av[4]);
 	table->philos = (t_philo *)malloc(sizeof(t_philo) * n_philo);
 	if (!table->philos)
 		return (0);
@@ -87,33 +80,6 @@ static int	init_table_philos(t_table *table, int n_philo, char **av, int ac)
 	return (1);
 }
 
-void	print_state(t_philo *philo, char *state)
-{
-	if (philo->table->any_dead)
-		return ;
-	pthread_mutex_lock(&philo->table->print);
-	if (!philo->table->any_dead)
-		printf("%lld %i %s\n", get_time() - \
-				philo->table->time_start, philo->n, state);
-	pthread_mutex_unlock(&philo->table->print);
-}
-
-void	do_sleep(long long time)
-{
-	time += get_time();
-	while (get_time() <= time)
-		usleep(100);
-}
-
-void	*set_dead(t_philo *philo, t_table *table)
-{
-	table->any_dead = 1;
-	pthread_mutex_lock(&table->print);
-	printf("%lld %i %s\n", get_time() - table->time_start, philo->n, DEAD);
-	pthread_mutex_unlock(&table->print);
-	return (NULL);
-}
-
 void	*routine(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->table->init);
@@ -132,12 +98,12 @@ void	*routine(t_philo *philo)
 			break ;
 		}
 		pthread_mutex_lock(philo->l_fork);
-		// pthread_mutex_lock(&philo->table->life_check);
+		pthread_mutex_lock(&philo->table->life_check);
 		print_state(philo, HTK);
 		print_state(philo, ISE);
 		philo->times_eat++;
 		philo->last_eat = get_time();
-		// pthread_mutex_unlock(&philo->table->life_check);
+		pthread_mutex_unlock(&philo->table->life_check);
 		do_sleep(philo->table->time.to_eat);
 		pthread_mutex_unlock(philo->r_fork);
 		pthread_mutex_unlock(philo->l_fork);
@@ -158,11 +124,9 @@ int	main(int ac, char ** av)
 	int		i;
 	int		t_eats;
 
-	(void)	ac;
-	(void)	av;
 	if (ac < 5 || ac > 6)
 		return (1);
-	n_philo = atoi(av[1]);
+	n_philo = ft_atoi(av[1]);
 	if (!n_philo)
 		return (1);
 	if (!init_table_philos(&table, n_philo, &av[1], ac - 1))
@@ -180,20 +144,12 @@ int	main(int ac, char ** av)
 			return (1);
 		}
 	}
-	// do_sleep(n_philo * 2);
 	pthread_mutex_unlock(&table.init);
 	i = -1;
 	while (++i < table.n_philo)
 		table.philos[i].last_eat = table.time_start;
-	// i = 0;
-	// t_eats = 0;
-	// do_sleep(2);
 	while (!table.any_dead)
 	{
-		// if (!table.tt_eat)
-			// break ;
-		// pthread_mutex_lock(&table.life_check);
-		// pthread_mutex_unlock(&table.life_check);
 		if (i == n_philo)
 		{
 			i = 0;
@@ -203,13 +159,11 @@ int	main(int ac, char ** av)
 			t_eats++;
 		if (t_eats == table.n_philo || !table.tt_eat)
 			break ;
+		pthread_mutex_lock(&table.life_check);
 		if (get_time() - table.philos[i].last_eat >= table.time.to_die)
-		{
-			// do_sleep(11);
 			set_dead(&table.philos[i], &table);
-		}
+		pthread_mutex_unlock(&table.life_check);
 		i++;
-		// usleep(5000);
 	}
 	i = -1;
 	while (++i < table.n_philo)
