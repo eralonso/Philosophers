@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 19:19:01 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/30 19:24:44 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/02 19:21:30 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,26 +47,25 @@ void	*set_dead(t_philo *philo, t_table *table)
 	return (NULL);
 }
 
-int	ft_atoi(char *str)
+long long	ft_atoll(char *str)
 {
-	int	res;
-	int	s;
-	int	i;
+	long long	neg;
+	long long	res;
 
-	i = 0;
-	s = 1;
+	neg = 1;
 	res = 0;
-	while (str[i] == '\n' || str[i] == '\t' || str[i] == 32 || \
-		str[i] == '\r' || str[i] == '\v' || str[i] == '\f')
-		i++;
-	if (str[i] == '-')
-		s = -1;
-	if (str[i] == '-' || str[i] == '+')
-		i++;
-	while (str[i] >= '0' && str[i] <= '9')
+	if (!str || !*str)
+		return (0);
+	while (*str && (*str == '\t' || *str == ' ' || *str == '\n'))
+		str++;
+	if (*str && *str == '-')
+		neg = -1;
+	if (*str && (*str == '+' || *str == '-'))
+		str++;
+	while (*str && (*str >= '0' && *str <= '9'))
 	{
-		res = (str[i] - '0') + (res * 10);
-		i++;
+		res = (*str - '0') + (res * 10);
+		str++;
 	}
-	return (res * s);
+	return (res * neg);
 }

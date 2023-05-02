@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:45:10 by eralonso          #+#    #+#             */
-/*   Updated: 2023/04/30 19:38:21 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/02 19:27:53 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,19 +14,31 @@
 # define PHILO_H
 
 # include	<stdlib.h>
+# include	<limits.h>
 # include	<stdio.h>
 # include	<unistd.h>
 # include	<pthread.h>
 # include	<sys/time.h>
 
+//Philo logs
 # define HTK	(char *)"has taken a fork"
 # define ISE	(char *)"is eating"
 # define ISS	(char *)"is sleeping"
 # define IST	(char *)"is thinking"
 # define DEAD	(char *)"died"
 
+//Errors messages
+# define ERR_ARGS_1		(char *)"\033[7;97m ❌ \033[0m Error: \
+\'Invalid number of arguments\': ./philo number_of_philosophers time_to_die \
+time_to_eat time_to_sleep <number_of_times_each_philosopher_must_eat>"
+# define ERR_ARGS_2		(char *)"\033[7;97m ❌ \033[0m Error: \
+\'Invalid arguments\': Arguments must be an integers"
+# define ERR_PTHREAD	(char *)"\033[7;97m ❌ \033[0m Error: \
+\'pthread_create()\': Thread "
+
 //Synonymous
 typedef pthread_mutex_t	t_mutex;
+typedef long long int	t_lli;
 
 //Struct
 typedef struct s_table	t_table;
@@ -70,6 +82,8 @@ void			print_state(t_philo *philo, char *state);
 void			do_sleep(long long time);
 void			*set_dead(t_philo *philo, t_table *table);
 long long int	get_time(void);
-int				ft_atoi(char *str);
+t_lli			ft_atoll(char *str);
+int				print_error(char *msg, int num, int ret);
+int				ft_check_args(int ac, char **args);
 
 #endif

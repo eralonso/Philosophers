@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/02 12:58:56 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/02 19:32:34 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,12 @@ static int	init_table_philos(t_table *table, int n_philo, char **av, int ac)
 
 	table->any_dead = 0;
 	table->n_philo = n_philo;
-	table->time.to_die = ft_atoi(av[1]);
-	table->time.to_eat = ft_atoi(av[2]);
-	table->time.to_sleep = ft_atoi(av[3]);
+	table->time.to_die = ft_atoll(av[1]);
+	table->time.to_eat = ft_atoll(av[2]);
+	table->time.to_sleep = ft_atoll(av[3]);
 	table->tt_eat = -1;
 	if (ac == 5)
-		table->tt_eat = ft_atoi(av[4]);
+		table->tt_eat = ft_atoll(av[4]);
 	table->philos = (t_philo *)malloc(sizeof(t_philo) * n_philo);
 	if (!table->philos)
 		return (0);
@@ -98,12 +98,12 @@ void	*routine(t_philo *philo)
 			break ;
 		}
 		pthread_mutex_lock(philo->l_fork);
-		pthread_mutex_lock(&philo->table->life_check);
+		// pthread_mutex_lock(&philo->table->life_check);
 		print_state(philo, HTK);
 		print_state(philo, ISE);
 		philo->times_eat++;
 		philo->last_eat = get_time();
-		pthread_mutex_unlock(&philo->table->life_check);
+		// pthread_mutex_unlock(&philo->table->life_check);
 		do_sleep(philo->table->time.to_eat);
 		pthread_mutex_unlock(philo->r_fork);
 		pthread_mutex_unlock(philo->l_fork);
@@ -116,7 +116,35 @@ void	*routine(t_philo *philo)
 	return (NULL);
 }
 
-int	main(int ac, char ** av)
+void	ft_putnbr_fd(long int num, int fd)
+{
+	if (num > 9)
+	{
+		ft_putnbr_fd(num / 10, fd);
+		ft_putnbr_fd(num % 10, fd);
+	}
+	else
+	{
+		num += '0';
+		write(fd, &num, 1);
+	}
+}
+
+int	print_error(char *msg, int num, int ret)
+{
+	int	i;
+
+	i = 0;
+	while (msg[i])
+		i++;
+	write(2, msg, i);
+	if (num >= 0)
+		ft_putnbr_fd(num, 2);
+	write(2, "\n", 1);
+	return (ret);
+}
+
+int	main(int ac, char **av)
 {
 	t_table	table;
 	int		err;
@@ -124,9 +152,9 @@ int	main(int ac, char ** av)
 	int		i;
 	int		t_eats;
 
-	if (ac < 5 || ac > 6)
+	if (ft_check_args(ac - 1, &av[1]))
 		return (1);
-	n_philo = ft_atoi(av[1]);
+	n_philo = ft_atoll(av[1]);
 	if (!n_philo)
 		return (1);
 	if (!init_table_philos(&table, n_philo, &av[1], ac - 1))
@@ -139,10 +167,7 @@ int	main(int ac, char ** av)
 		table.philos[i].last_eat = get_time();
 		err = pthread_create(&table.philos[i].id, NULL, (void *)routine, &table.philos[i]);
 		if (err)
-		{
-			dprintf(2, "Error \'pthread_create()\'.\nThread %i", i);
-			return (1);
-		}
+			return (print_error(ERR_PTHREAD, i, 1));
 	}
 	pthread_mutex_unlock(&table.init);
 	i = -1;
@@ -159,10 +184,10 @@ int	main(int ac, char ** av)
 			t_eats++;
 		if (t_eats == table.n_philo || !table.tt_eat)
 			break ;
-		pthread_mutex_lock(&table.life_check);
+		// pthread_mutex_lock(&table.life_check);
 		if (get_time() - table.philos[i].last_eat >= table.time.to_die)
 			set_dead(&table.philos[i], &table);
-		pthread_mutex_unlock(&table.life_check);
+		// pthread_mutex_unlock(&table.life_check);
 		i++;
 	}
 	i = -1;
