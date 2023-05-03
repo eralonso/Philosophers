@@ -6,198 +6,94 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/02 19:32:34 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/03 14:46:19 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include	<philo.h>
 
+static int	init_mutex(t_table *table, int n_philo);
+static void	init_philos(t_table *table, int n_philo);
+static int	init_table(t_table *table, char **av, int ac);
 
-static int	init_table_philos(t_table *table, int n_philo, char **av, int ac)
+int	main(int ac, char **av)
 {
-	int		i;
+	t_table	table;
 
-	table->any_dead = 0;
-	table->n_philo = n_philo;
-	table->time.to_die = ft_atoll(av[1]);
-	table->time.to_eat = ft_atoll(av[2]);
-	table->time.to_sleep = ft_atoll(av[3]);
-	table->tt_eat = -1;
-	if (ac == 5)
-		table->tt_eat = ft_atoll(av[4]);
-	table->philos = (t_philo *)malloc(sizeof(t_philo) * n_philo);
-	if (!table->philos)
-		return (0);
-	table->forks = (t_mutex *)malloc(sizeof(t_mutex) * n_philo);
-	if (!table->forks)
-	{
-		free(table->philos);
-		return (0);
-	}
+	if (ft_check_args(ac - 1, &av[1]))
+		return (1);
+	if (init_table(&table, &av[1], ac - 1) == 0)
+		return (1);
+	if (init_matrix(&table) == 0)
+		return (1);
+	return (0);
+}
+
+static int	init_mutex(t_table *table, int n_philo)
+{
+	static int	i = -1;
+
 	if (pthread_mutex_init(&table->print, NULL))
-	{
-		free(table->philos);
-		free(table->forks);
 		return (0);
-	}
 	if (pthread_mutex_init(&table->init, NULL))
 	{
-		free(table->philos);
-		free(table->forks);
 		pthread_mutex_destroy(&table->print);
 		return (0);
 	}
 	if (pthread_mutex_init(&table->life_check, NULL))
 	{
-		free(table->philos);
-		free(table->forks);
 		pthread_mutex_destroy(&table->print);
 		pthread_mutex_destroy(&table->init);
 		return (0);
 	}
-	i = -1;
 	while (++i < n_philo)
 	{
 		if (pthread_mutex_init(&table->forks[i], NULL))
 		{
-			free(table->philos);
-			free(table->forks);
 			pthread_mutex_destroy(&table->print);
 			pthread_mutex_destroy(&table->life_check);
 			return (0);
 		}
 	}
+	return (1);
+}
+
+static void	init_philos(t_table *table, int n_philo)
+{
+	int	i;
+
 	i = -1;
 	while (++i < n_philo)
 	{
 		table->philos[i].n = i + 1;
 		table->philos[i].alive = 1;
 		table->philos[i].r_fork = &table->forks[i];
-		table->philos[i].l_fork = &table->forks[((i + 1) % n_philo)];
+		table->philos[i].l_fork = &table->forks[((i + 1) % table->n_philo)];
 		table->philos[i].table = table;
 		table->philos[i].times_eat = 0;
 	}
+}
+
+static int	init_table(t_table *table, char **av, int ac)
+{
+	table->any_dead = 0;
+	table->n_philo = ft_atoll(av[0]);
+	if (!table->n_philo)
+		return (0);
+	table->time.to_die = ft_atoll(av[1]);
+	table->time.to_eat = ft_atoll(av[2]);
+	table->time.to_sleep = ft_atoll(av[3]);
+	table->tt_eat = -1;
+	if (ac == 5)
+		table->tt_eat = ft_atoll(av[4]);
+	table->philos = (t_philo *)malloc(sizeof(t_philo) * table->n_philo);
+	if (!table->philos)
+		return (0);
+	table->forks = (t_mutex *)malloc(sizeof(t_mutex) * table->n_philo);
+	if (!table->forks)
+		return (ft_free(table->philos, NULL));
+	if (init_mutex(table, table->n_philo) == 0)
+		return (ft_free(table->philos, table->forks));
+	init_philos(table, table->n_philo);
 	return (1);
-}
-
-void	*routine(t_philo *philo)
-{
-	pthread_mutex_lock(&philo->table->init);
-	pthread_mutex_unlock(&philo->table->init);
-	if (!(philo->n % 2))
-		do_sleep(philo->table->time.to_eat);
-	while (!philo->table->any_dead && !(philo->table->tt_eat != -1 \
-		&& philo->times_eat == philo->table->tt_eat))
-	{
-		print_state(philo, IST);
-		pthread_mutex_lock(philo->r_fork);
-		print_state(philo, HTK);
-		if (philo->r_fork == philo->l_fork)
-		{
-			pthread_mutex_unlock(philo->r_fork);
-			break ;
-		}
-		pthread_mutex_lock(philo->l_fork);
-		// pthread_mutex_lock(&philo->table->life_check);
-		print_state(philo, HTK);
-		print_state(philo, ISE);
-		philo->times_eat++;
-		philo->last_eat = get_time();
-		// pthread_mutex_unlock(&philo->table->life_check);
-		do_sleep(philo->table->time.to_eat);
-		pthread_mutex_unlock(philo->r_fork);
-		pthread_mutex_unlock(philo->l_fork);
-		if (philo->table->tt_eat != -1 && \
-			philo->times_eat == philo->table->tt_eat)
-			break ;
-		print_state(philo, ISS);
-		do_sleep(philo->table->time.to_sleep);
-	}
-	return (NULL);
-}
-
-void	ft_putnbr_fd(long int num, int fd)
-{
-	if (num > 9)
-	{
-		ft_putnbr_fd(num / 10, fd);
-		ft_putnbr_fd(num % 10, fd);
-	}
-	else
-	{
-		num += '0';
-		write(fd, &num, 1);
-	}
-}
-
-int	print_error(char *msg, int num, int ret)
-{
-	int	i;
-
-	i = 0;
-	while (msg[i])
-		i++;
-	write(2, msg, i);
-	if (num >= 0)
-		ft_putnbr_fd(num, 2);
-	write(2, "\n", 1);
-	return (ret);
-}
-
-int	main(int ac, char **av)
-{
-	t_table	table;
-	int		err;
-	int		n_philo;
-	int		i;
-	int		t_eats;
-
-	if (ft_check_args(ac - 1, &av[1]))
-		return (1);
-	n_philo = ft_atoll(av[1]);
-	if (!n_philo)
-		return (1);
-	if (!init_table_philos(&table, n_philo, &av[1], ac - 1))
-		return (1);
-	pthread_mutex_lock(&table.init);
-	i = -1;
-	table.time_start = get_time();
-	while (++i < n_philo)
-	{
-		table.philos[i].last_eat = get_time();
-		err = pthread_create(&table.philos[i].id, NULL, (void *)routine, &table.philos[i]);
-		if (err)
-			return (print_error(ERR_PTHREAD, i, 1));
-	}
-	pthread_mutex_unlock(&table.init);
-	i = -1;
-	while (++i < table.n_philo)
-		table.philos[i].last_eat = table.time_start;
-	while (!table.any_dead)
-	{
-		if (i == n_philo)
-		{
-			i = 0;
-			t_eats = 0;
-		}
-		if (table.philos[i].times_eat == table.tt_eat)
-			t_eats++;
-		if (t_eats == table.n_philo || !table.tt_eat)
-			break ;
-		// pthread_mutex_lock(&table.life_check);
-		if (get_time() - table.philos[i].last_eat >= table.time.to_die)
-			set_dead(&table.philos[i], &table);
-		// pthread_mutex_unlock(&table.life_check);
-		i++;
-	}
-	i = -1;
-	while (++i < table.n_philo)
-		pthread_mutex_destroy(&table.forks[i]);
-	pthread_mutex_destroy(&table.print);
-	pthread_mutex_destroy(&table.init);
-	pthread_mutex_destroy(&table.life_check);		
-	i = -1;
-	while (++i < table.n_philo)
-		pthread_join(table.philos[i].id, NULL);
-	return (0);
 }

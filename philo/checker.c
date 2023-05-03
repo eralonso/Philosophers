@@ -1,24 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   chk_and_prs.c                                      :+:      :+:    :+:   */
+/*   checker.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/02 18:58:47 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/02 19:30:51 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/03 14:32:10 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include	<philo.h>
 
-int	ft_isnum(char *input);
-int	ft_isint(char *input);
+static int	ft_isnum(char *input);
+static int	ft_isint(char *input);
+static int	ft_nbr_size(t_lli nbr, t_lli len);
 
 int	ft_check_args(int ac, char **args)
 {
 	int	i;
-	
+
 	if (ac < 4 || ac > 5)
 		return (print_error(ERR_ARGS_1, -1, 1));
 	i = -1;
@@ -28,7 +29,7 @@ int	ft_check_args(int ac, char **args)
 	return (0);
 }
 
-int	ft_isnum(char *input)
+static int	ft_isnum(char *input)
 {
 	int	i;
 
@@ -51,34 +52,7 @@ int	ft_isnum(char *input)
 	return (1);
 }
 
-int	ft_strlen(char *str)
-{
-	int	len;
-
-	len = 0;
-	while (str[len])
-		len++;	
-	return (len);
-}
-
-int  ft_nbr_size(t_lli nbr, t_lli len)
-{
-	int     nbr_size;
-
-	nbr_size = 0;
-	if (nbr < 0)
-		nbr = -nbr;
-	if (nbr == 0)
-		return (1);
-	while (nbr > 0)
-	{
-		nbr_size++;
-		nbr /= len;
-	}
-	return (nbr_size);
-}
-
-int	ft_isint(char *num)
+static int	ft_isint(char *num)
 {
 	int			i;
 	long long	tmp;
@@ -98,4 +72,21 @@ int	ft_isint(char *num)
 	if (tmp < INT_MIN || tmp > INT_MAX)
 		return (0);
 	return (1);
+}
+
+static int	ft_nbr_size(t_lli nbr, t_lli len)
+{
+	int	nbr_size;
+
+	nbr_size = 0;
+	if (nbr < 0)
+		nbr = -nbr;
+	if (nbr == 0)
+		return (1);
+	while (nbr > 0)
+	{
+		nbr_size++;
+		nbr /= len;
+	}
+	return (nbr_size);
 }

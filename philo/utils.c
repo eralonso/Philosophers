@@ -6,46 +6,11 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 19:19:01 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/02 19:21:30 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/03 14:47:46 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include	<philo.h>
-
-long long int	get_time(void)
-{
-	struct timeval	tv;
-
-	gettimeofday(&tv, NULL);
-	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
-}
-
-void	print_state(t_philo *philo, char *state)
-{
-	if (philo->table->any_dead)
-		return ;
-	pthread_mutex_lock(&philo->table->print);
-	if (!philo->table->any_dead)
-		printf("%lld %i %s\n", get_time() - \
-				philo->table->time_start, philo->n, state);
-	pthread_mutex_unlock(&philo->table->print);
-}
-
-void	do_sleep(long long time)
-{
-	time += get_time();
-	while (get_time() <= time)
-		usleep(100);
-}
-
-void	*set_dead(t_philo *philo, t_table *table)
-{
-	table->any_dead = 1;
-	pthread_mutex_lock(&table->print);
-	printf("%lld %i %s\n", get_time() - table->time_start, philo->n, DEAD);
-	pthread_mutex_unlock(&table->print);
-	return (NULL);
-}
 
 long long	ft_atoll(char *str)
 {
@@ -68,4 +33,47 @@ long long	ft_atoll(char *str)
 		str++;
 	}
 	return (res * neg);
+}
+
+int	ft_strlen(char *str)
+{
+	int	len;
+
+	len = 0;
+	while (str[len])
+		len++;
+	return (len);
+}
+
+int	ft_free(void *f1, void *f2)
+{
+	free(f1);
+	free(f2);
+	return (0);
+}
+
+void	ft_putnbr_fd(long int num, int fd)
+{
+	if (num > 9)
+	{
+		ft_putnbr_fd(num / 10, fd);
+		ft_putnbr_fd(num % 10, fd);
+	}
+	else
+	{
+		num += '0';
+		write(fd, &num, 1);
+	}
+}
+
+int	print_error(char *msg, int num, int ret)
+{
+	int	i;
+
+	i = ft_strlen(msg);
+	write(2, msg, i);
+	if (num >= 0)
+		ft_putnbr_fd(num, 2);
+	write(2, "\n", 1);
+	return (ret);
 }

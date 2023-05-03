@@ -6,7 +6,7 @@
 #    By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/14 13:02:49 by eralonso          #+#    #+#              #
-#    Updated: 2023/05/02 19:23:35 by eralonso         ###   ########.fr        #
+#    Updated: 2023/05/03 13:31:47 by eralonso         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,7 +31,7 @@ HEADER		=	./
 OBJ_DIR		=	objs/
 
 #<--------------------------------->FILES<---------------------------------->#
-FILES		=	philo utils chk_and_prs
+FILES		=	philo utils checker matrix matrix_utils
 
 #<--------------------------------->SRCS<----------------------------------->#
 SRCS		=	$(addsuffix .c, $(FILES))
