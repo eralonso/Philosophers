@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo.h                                            :+:      :+:    :+:   */
+/*   philo_bonus.h                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:45:10 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/04 17:14:21 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/04 18:22:13 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,12 @@
 # include	<unistd.h>
 # include	<pthread.h>
 # include	<sys/time.h>
+# include	<sys/types.h>
+# include	<sys/wait.h>
+# include	<sys/stat.h> 
+# include	<fcntl.h>
+# include	<signal.h>
+# include	<semaphore.h>
 
 //Define: Philo logs
 # define HTK	(char *)"has taken a fork"
@@ -33,6 +39,8 @@
 time_to_eat time_to_sleep <number_of_times_each_philosopher_must_eat>"
 # define ERR_ARGS_2		(char *)"\033[7;97m ❌ \033[0m Error: \
 \'Invalid arguments\': Arguments must be an integers"
+# define ERR_FORK		(char *)"\033[7;97m ❌ \033[0m Error: \
+\'fork()\': Process "
 # define ERR_PTHREAD	(char *)"\033[7;97m ❌ \033[0m Error: \
 \'pthread_create()\': Thread "
 
@@ -68,6 +76,7 @@ struct s_table {
 
 struct s_philo
 {
+	pid_t		pid;
 	pthread_t	id;
 	int			n;
 	int			times_eat;
