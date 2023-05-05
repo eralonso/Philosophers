@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/03 13:29:06 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/04 18:14:29 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/05 12:56:24 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,38 +24,35 @@ void	print_state(t_philo *philo, char *state)
 {
 	if (philo->table->any_dead)
 		return ;
-	pthread_mutex_lock(&philo->table->print);
+	sem_wait(philo->table->print);
 	if (!philo->table->any_dead)
 		printf("%lld %i %s\n", get_time() - \
 				philo->table->time_start, philo->n, state);
-	pthread_mutex_unlock(&philo->table->print);
+	sem_post(philo->table->print);
 }
 
 void	do_sleep(long long time)
 {
 	time += get_time();
 	while (get_time() <= time)
-		usleep(200);
+		usleep(210);
 }
 
 void	*set_dead(t_philo *philo, t_table *table)
 {
 	table->any_dead = 1;
-	pthread_mutex_lock(&table->print);
+	sem_wait(table->print);
 	printf("%lld %i %s\n", get_time() - table->time_start, philo->n, DEAD);
-	pthread_mutex_unlock(&table->print);
 	return (NULL);
 }
 
 void	destroy_all(t_table *table)
 {
-	int	i;
-
-	i = -1;
-	ft_free(table->philos, table->forks);
-	while (++i < table->n_philo)
-		pthread_mutex_destroy(&table->forks[i]);
-	pthread_mutex_destroy(&table->print);
-	pthread_mutex_destroy(&table->init);
-	pthread_mutex_destroy(&table->life_check);
+	ft_free(table->philos, NULL);
+	sem_close(table->forks);
+	sem_close(table->life_check);
+	sem_close(table->print);
+	sem_unlink("/forks");
+	sem_unlink("/life_check");
+	sem_unlink("/print");
 }

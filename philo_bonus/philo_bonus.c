@@ -6,13 +6,13 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/04 17:17:01 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/05 11:18:12 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include	<philo_bonus.h>
 
-static int	init_mutex(t_table *table, int n_philo);
+static int	init_sem(t_table *table, int n_philo);
 static void	init_philos(t_table *table, int n_philo);
 static int	init_table(t_table *table, char **av, int ac);
 
@@ -29,32 +29,21 @@ int	main(int ac, char **av)
 	return (0);
 }
 
-static int	init_mutex(t_table *table, int n_philo)
+static int	init_sem(t_table *table, int n_philo)
 {
-	static int	i = -1;
-
-	if (pthread_mutex_init(&table->print, NULL))
-		return (0);
-	if (pthread_mutex_init(&table->init, NULL))
-	{
-		pthread_mutex_destroy(&table->print);
-		return (0);
-	}
-	if (pthread_mutex_init(&table->life_check, NULL))
-	{
-		pthread_mutex_destroy(&table->print);
-		pthread_mutex_destroy(&table->init);
-		return (0);
-	}
-	while (++i < n_philo)
-	{
-		if (pthread_mutex_init(&table->forks[i], NULL))
-		{
-			pthread_mutex_destroy(&table->print);
-			pthread_mutex_destroy(&table->life_check);
-			return (0);
-		}
-	}
+	sem_unlink("/forks");
+	sem_unlink("/life_check");
+	sem_unlink("/print");
+	table->forks = sem_open("/forks", O_CREAT, 0744, n_philo);
+	if (table->forks == SEM_FAILED)
+		return (print_error(ERR_SEM, -1, 0));
+	table->life_check = sem_open("/life_check", O_CREAT, 0744, 1);
+	if (table->life_check == SEM_FAILED)
+		return ((sem_unlink("/forks") || print_error(ERR_SEM, -1, 0)) && 0);
+	table->print = sem_open("/print", O_CREAT, 0744, 1);
+	if (table->print == SEM_FAILED)
+		return ((sem_unlink("/forks") || sem_unlink("/life_check") \
+		|| print_error(ERR_SEM, -1, 0)) && 0);
 	return (1);
 }
 
@@ -66,8 +55,6 @@ static void	init_philos(t_table *table, int n_philo)
 	while (++i < n_philo)
 	{
 		table->philos[i].n = i + 1;
-		table->philos[i].r_fork = &table->forks[i];
-		table->philos[i].l_fork = &table->forks[((i + 1) % table->n_philo)];
 		table->philos[i].table = table;
 		table->philos[i].times_eat = 0;
 	}
@@ -88,11 +75,8 @@ static int	init_table(t_table *table, char **av, int ac)
 	table->philos = (t_philo *)malloc(sizeof(t_philo) * table->n_philo);
 	if (!table->philos)
 		return (0);
-	table->forks = (t_mutex *)malloc(sizeof(t_mutex) * table->n_philo);
-	if (!table->forks)
+	if (init_sem(table, table->n_philo) == 0)
 		return (ft_free(table->philos, NULL));
-	if (init_mutex(table, table->n_philo) == 0)
-		return (ft_free(table->philos, table->forks));
 	init_philos(table, table->n_philo);
 	return (1);
 }

@@ -6,12 +6,12 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:45:10 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/04 18:22:13 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/05 11:18:32 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PHILO_H
-# define PHILO_H
+#ifndef PHILO_BONUS_H
+# define PHILO_BONUS_H
 
 # include	<limits.h>
 # include	<stdio.h>
@@ -39,13 +39,14 @@
 time_to_eat time_to_sleep <number_of_times_each_philosopher_must_eat>"
 # define ERR_ARGS_2		(char *)"\033[7;97m ❌ \033[0m Error: \
 \'Invalid arguments\': Arguments must be an integers"
+# define ERR_SEM		(char *)"\033[7;97m ❌ \033[0m Error: \
+\'sem_open()\'"
 # define ERR_FORK		(char *)"\033[7;97m ❌ \033[0m Error: \
 \'fork()\': Process "
 # define ERR_PTHREAD	(char *)"\033[7;97m ❌ \033[0m Error: \
 \'pthread_create()\': Thread "
 
 //Typedef: Synonymous
-typedef pthread_mutex_t	t_mutex;
 typedef long long int	t_lli;
 
 //Typedef: Structs
@@ -62,10 +63,9 @@ struct s_times
 };
 
 struct s_table {
-	t_mutex		print;
-	t_mutex		init;
-	t_mutex		life_check;
-	t_mutex		*forks;
+	sem_t		*print;
+	sem_t		*life_check;
+	sem_t		*forks;
 	t_philo		*philos;
 	t_times		time;
 	int			any_dead;
@@ -80,8 +80,6 @@ struct s_philo
 	pthread_t	id;
 	int			n;
 	int			times_eat;
-	t_mutex		*r_fork;
-	t_mutex		*l_fork;
 	long long	last_eat;
 	t_table		*table;
 };
