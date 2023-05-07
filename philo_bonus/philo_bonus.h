@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:45:10 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/05 11:18:32 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/07 14:01:41 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,8 @@ time_to_eat time_to_sleep <number_of_times_each_philosopher_must_eat>"
 typedef long long int	t_lli;
 
 //Typedef: Structs
-typedef struct s_table	t_table;
 typedef struct s_philo	t_philo;
+typedef struct s_table	t_table;
 typedef struct s_times	t_times;
 
 //Structs
@@ -62,34 +62,35 @@ struct s_times
 	int	to_sleep;
 };
 
+struct s_philo {
+	int			n;
+	int			times_eat;
+	t_lli		last_eat;
+};
+
 struct s_table {
 	sem_t		*print;
 	sem_t		*life_check;
 	sem_t		*forks;
-	t_philo		*philos;
+	sem_t		*finish;
+	sem_t		*dead;
+	pid_t		*pid;
+	pthread_t	th_dead;
+	pthread_t	th_finish;
+	int			end;
+	t_philo		philo;
 	t_times		time;
-	int			any_dead;
 	int			tt_eat;
 	int			n_philo;
 	long long	time_start;
-};
-
-struct s_philo
-{
-	pid_t		pid;
-	pthread_t	id;
-	int			n;
-	int			times_eat;
-	long long	last_eat;
-	t_table		*table;
 };
 
 //Functions: Matrix
 int				init_matrix(t_table *table);
 
 //Functions: Matrix Utils
-void			print_state(t_philo *philo, char *state);
-void			do_sleep(long long time);
+void			print_state(t_table *table, char *state);
+void			do_sleep(t_table *table, t_lli time);
 void			*set_dead(t_philo *philo, t_table *table);
 long long int	get_time(void);
 void			destroy_all(t_table *table);
