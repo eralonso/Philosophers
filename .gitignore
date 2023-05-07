@@ -1,1 +1,6 @@
+*.o
+*.d
+*.a
+*.m
+*.out
 .vscode

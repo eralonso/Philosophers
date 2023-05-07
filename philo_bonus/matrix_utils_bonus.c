@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/03 13:29:06 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/07 15:37:49 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/07 17:21:27 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,11 +60,11 @@ void	destroy_all(t_table *table)
 	sem_close(table->forks);
 	sem_close(table->life_check);
 	sem_close(table->print);
-	sem_close(table->dead);
 	sem_close(table->finish);
+	sem_close(table->dead);
 	sem_unlink("/forks");
 	sem_unlink("/life_check");
 	sem_unlink("/print");
-	sem_unlink("/dead");
 	sem_unlink("/finish");
+	sem_unlink("/dead");
 }
