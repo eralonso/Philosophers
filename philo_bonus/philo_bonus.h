@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:45:10 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/07 16:58:07 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/08 11:16:31 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ void			print_state(t_table *table, char *state);
 void			do_sleep(t_table *table, t_lli time);
 void			*set_dead(t_philo *philo, t_table *table);
 long long int	get_time(void);
-void			destroy_all(t_table *table);
+int				destroy_all(t_table *table, int ret);
 
 //Functions: Checker
 int				ft_check_args(int ac, char **args);

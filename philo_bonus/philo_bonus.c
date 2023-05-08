@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/07 13:54:47 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/08 11:52:08 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,14 +60,14 @@ static int	init_sem(t_table *table, int n_philo)
 static int	init_table(t_table *table, char **av, int ac)
 {
 	table->n_philo = ft_atoll(av[0]);
-	if (!table->n_philo)
-		return (0);
 	table->time.to_die = ft_atoll(av[1]);
 	table->time.to_eat = ft_atoll(av[2]);
 	table->time.to_sleep = ft_atoll(av[3]);
 	table->tt_eat = -1;
 	if (ac == 5)
 		table->tt_eat = ft_atoll(av[4]);
+	if (!table->n_philo || !table->tt_eat || (ac == 5 && table->tt_eat < 0))
+		return (0);
 	table->pid = (pid_t *)malloc(sizeof(pid_t) * table->n_philo);
 	if (!table->pid)
 		return (0);

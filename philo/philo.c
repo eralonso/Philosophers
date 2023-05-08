@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/14 12:44:29 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/04 17:16:35 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/08 11:57:44 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,8 @@ static int	init_table(t_table *table, char **av, int ac)
 	table->tt_eat = -1;
 	if (ac == 5)
 		table->tt_eat = ft_atoll(av[4]);
+	if (!table->n_philo || !table->tt_eat || (ac == 5 && table->tt_eat < 0))
+		return (0);
 	table->philos = (t_philo *)malloc(sizeof(t_philo) * table->n_philo);
 	if (!table->philos)
 		return (0);

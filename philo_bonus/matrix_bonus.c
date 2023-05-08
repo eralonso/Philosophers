@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/03 12:36:44 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/07 17:32:37 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/08 11:55:09 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ static void	rt_finish(t_table *table);
 int	init_matrix(t_table *table)
 {
 	int	i;
+	int	status;
 
 	i = -1;
 	pthread_create(&table->th_finish, NULL, (void *)rt_finish, table);
@@ -35,10 +36,14 @@ int	init_matrix(t_table *table)
 	}
 	sem_post(table->finish);
 	sem_post(table->dead);
+	i = -1;
+	while (++i < table->n_philo && waitpid(-1, &status, 0) > 0)
+		if (!WIFSIGNALED(status) || \
+			(WIFSIGNALED(status) && WTERMSIG(status) != SIGTERM))
+			sem_post(table->dead);
 	pthread_join(table->th_dead, NULL);
 	pthread_join(table->th_finish, NULL);
-	destroy_all(table);
-	return (1);
+	return (destroy_all(table, 1));
 }
 
 static void	routine_eating(t_table *table)

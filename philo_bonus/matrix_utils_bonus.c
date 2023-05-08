@@ -6,7 +6,7 @@
 /*   By: eralonso <eralonso@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/03 13:29:06 by eralonso          #+#    #+#             */
-/*   Updated: 2023/05/07 17:21:27 by eralonso         ###   ########.fr       */
+/*   Updated: 2023/05/08 11:46:02 by eralonso         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,20 +31,30 @@ void	print_state(t_table *table, char *state)
 void	do_sleep(t_table *table, t_lli t)
 {
 	t_lli	init;
-	t_lli	tdie;
+	t_lli	time;
 
 	init = get_time();
-	tdie = (init - table->philo.last_eat) + t;
-	if (tdie >= table->time.to_die)
+	if ((init - table->philo.last_eat) + t > table->time.to_die)
 	{
-		tdie = table->time.to_die - (init - table->philo.last_eat);
-		if (tdie > 0)
-			usleep(tdie * 1000);
+		time = table->time.to_die - (init - table->philo.last_eat);
+		if (time > 0)
+			usleep(time * 1000);
 		set_dead(&table->philo, table);
 		sem_post(table->dead);
 		sem_wait(table->print);
 	}
-	usleep(t * 1000);
+	t += init;
+	time = 100;
+	while (init < t)
+	{
+		if (init + time > t && time >= 50)
+			time = 50;
+		if (init + time < t && time > 0)
+			usleep(time);
+		else
+			time -= 10;
+		init = get_time();
+	}
 }
 
 void	*set_dead(t_philo *philo, t_table *table)
@@ -54,7 +64,7 @@ void	*set_dead(t_philo *philo, t_table *table)
 	return (NULL);
 }
 
-void	destroy_all(t_table *table)
+int	destroy_all(t_table *table, int ret)
 {
 	ft_free(table->pid, NULL);
 	sem_close(table->forks);
@@ -67,4 +77,5 @@ void	destroy_all(t_table *table)
 	sem_unlink("/print");
 	sem_unlink("/finish");
 	sem_unlink("/dead");
+	return (ret);
 }
